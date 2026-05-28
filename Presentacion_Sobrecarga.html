@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sobrecarga de Operadores en C++ — TC1030</title>
+<style>
+  :root {
+    --primary:       #1565C0;
+    --primary-dark:  #0D47A1;
+    --primary-light: #E3F2FD;
+    --accent:        #0097A7;
+    --accent-light:  #E0F7FA;
+    --warn:          #E65100;
+    --warn-light:    #FFF3E0;
+    --success:       #2E7D32;
+    --success-light: #E8F5E9;
+    --surface:       #FAFAFA;
+    --surface2:      #F5F5F5;
+    --on-surface:    #212121;
+    --outline:       #9E9E9E;
+    --code-bg:       #1E1E2E;
+    --code-text:     #CDD6F4;
+    --keyword:       #CBA6F7;
+    --type:          #89DCEB;
+    --string:        #A6E3A1;
+    --comment:       #6C7086;
+    --number:        #FAB387;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--surface);
+    color: var(--on-surface);
+    line-height: 1.7;
+  }
+
+  /* ── NAV ─────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--primary-dark);
+    color: #fff;
+    padding: 0 1.5rem;
+    display: flex; align-items: center; gap: .4rem;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+  }
+  nav .brand { font-size: 1rem; font-weight: 800; padding: .9rem 0; white-space: nowrap; margin-right: .6rem; }
+  nav a {
+    color: rgba(255,255,255,.8);
+    text-decoration: none;
+    font-size: .78rem;
+    padding: .35rem .55rem;
+    border-radius: 6px;
+    transition: background .2s;
+    white-space: nowrap;
+  }
+  nav a:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+  /* ── HERO ────────────────────────────────── */
+  .hero {
+    background: linear-gradient(140deg, #0D47A1 0%, #1565C0 45%, #0097A7 100%);
+    color: #fff;
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "C++";
+    position: absolute;
+    font-size: 14rem;
+    font-weight: 900;
+    opacity: .05;
+    top: -2rem; right: -2rem;
+    pointer-events: none;
+    line-height: 1;
+  }
+  .hero h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; }
+  .hero .subtitle { font-size: 1.15rem; opacity: .9; margin-top: .6rem; }
+  .hero-meta {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem;
+    margin-top: 1.5rem;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 20px;
+    padding: .3rem 1rem;
+    font-size: .8rem;
+  }
+  .toc-pills {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem;
+    margin-top: 2rem;
+  }
+  .toc-pill {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    padding: .3rem .9rem;
+    font-size: .78rem;
+    text-decoration: none;
+    color: rgba(255,255,255,.9);
+    transition: background .2s;
+  }
+  .toc-pill:hover { background: rgba(255,255,255,.28); color: #fff; }
+
+  /* ── LAYOUT ──────────────────────────────── */
+  main { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+  /* ── TOPIC CARD ──────────────────────────── */
+  .topic {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.08);
+    margin-bottom: 3rem;
+    overflow: hidden;
+    border: 1px solid #E0E0E0;
+  }
+  .topic-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 1.4rem 1.8rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .topic-header.accent { background: var(--accent); }
+  .topic-number {
+    background: rgba(255,255,255,.22);
+    border-radius: 50%;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .topic-header h2 { font-size: 1.25rem; font-weight: 700; }
+  .topic-header .subtitle { font-size: .85rem; opacity: .82; margin-top: .1rem; }
+  .topic-body { padding: 1.8rem; }
+
+  /* ── SECTIONS ────────────────────────────── */
+  .section { margin-bottom: 1.8rem; }
+  .section:last-child { margin-bottom: 0; }
+  .section-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.3px;
+    color: var(--primary);
+    margin-bottom: .8rem;
+    padding-bottom: .4rem;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .section-title.accent { color: var(--accent); border-color: var(--accent-light); }
+  p { margin-bottom: .75rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: .75rem; }
+  li { margin-bottom: .3rem; }
+  strong { color: var(--primary); }
+  em { color: #555; }
+
+  /* ── CODE ────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    overflow-x: auto;
+    font-size: .83rem;
+    line-height: 1.65;
+    margin: .8rem 0;
+    border: 1px solid #313244;
+    position: relative;
+  }
+  pre .lang-tag {
+    position: absolute; top: .5rem; right: .8rem;
+    font-size: .68rem; color: #6C7086;
+    font-family: 'Fira Code', monospace;
+    letter-spacing: .5px;
+  }
+  code { font-family: 'Fira Code', 'Consolas', 'Courier New', monospace; }
+  .kw  { color: var(--keyword); }
+  .ty  { color: var(--type); }
+  .st  { color: var(--string); }
+  .cm  { color: var(--comment); font-style: italic; }
+  .nu  { color: var(--number); }
+  .fn  { color: #89B4FA; }
+  .op  { color: #F38BA8; font-weight: 700; }
+
+  /* ── CALLOUT ─────────────────────────────── */
+  .callout {
+    border-left: 4px solid var(--primary);
+    background: var(--primary-light);
+    border-radius: 0 10px 10px 0;
+    padding: .9rem 1.2rem;
+    margin: .8rem 0;
+    font-size: .92rem;
+  }
+  .callout.tip    { border-color: var(--success); background: var(--success-light); }
+  .callout.warn   { border-color: var(--warn);    background: var(--warn-light); }
+  .callout.accent { border-color: var(--accent);  background: var(--accent-light); }
+  .callout-title  { font-weight: 700; font-size: .8rem; text-transform: uppercase;
+                    letter-spacing: .8px; margin-bottom: .3rem; }
+  .callout.tip  .callout-title  { color: var(--success); }
+  .callout.warn .callout-title  { color: var(--warn); }
+  .callout.accent .callout-title { color: var(--accent); }
+  .callout > .callout-title + p { margin-bottom: 0; }
+
+  /* ── GRID ────────────────────────────────── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: .8rem 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: .8rem 0; }
+  @media(max-width:650px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+  }
+  .card {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid #E0E0E0;
+  }
+  .card h4 { font-size: .92rem; color: var(--primary); margin-bottom: .4rem; font-weight: 700; }
+  .card p, .card li { font-size: .87rem; }
+  .card.accent h4 { color: var(--accent); }
+  .card.warn h4   { color: var(--warn); }
+  .card.green h4  { color: var(--success); }
+
+  /* ── TABLE ───────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: .8rem 0; font-size: .88rem; }
+  th { background: var(--primary); color: #fff; padding: .65rem 1rem; text-align: left; }
+  th.accent { background: var(--accent); }
+  td { padding: .55rem 1rem; border-bottom: 1px solid #E0E0E0; vertical-align: top; }
+  tr:nth-child(even) td { background: var(--surface2); }
+  td code { background: #ECEFF1; padding: .1rem .3rem; border-radius: 4px;
+            font-size: .82rem; color: var(--primary-dark); }
+
+  /* ── CHIPS ───────────────────────────────── */
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
+  .chip {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 20px;
+    padding: .2rem .85rem;
+    font-size: .78rem;
+    font-weight: 600;
+    font-family: 'Fira Code', monospace;
+  }
+  .chip.accent { background: var(--accent-light); color: var(--accent); }
+  .chip.warn   { background: var(--warn-light);   color: var(--warn); }
+  .chip.green  { background: var(--success-light); color: var(--success); }
+
+  /* ── STEP FLOW ───────────────────────────── */
+  .steps { list-style: none; padding: 0; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    padding: .7rem 1rem .7rem 3.2rem;
+    position: relative;
+    border-left: 2px solid var(--primary-light);
+    margin-left: 1.2rem;
+    margin-bottom: .4rem;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: -1.3rem; top: .6rem;
+    width: 2rem; height: 2rem;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700;
+  }
+
+  /* ── METAPHOR BOX ────────────────────────── */
+  .metaphor {
+    background: linear-gradient(135deg, #E3F2FD, #E0F7FA);
+    border: 1px solid #B3E5FC;
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+    font-size: .93rem;
+  }
+  .metaphor .meta-icon { font-size: 2rem; margin-bottom: .4rem; }
+  .metaphor h4 { color: var(--primary-dark); font-size: 1rem; margin-bottom: .4rem; }
+
+  /* ── TASK BOX ────────────────────────────── */
+  .task-box {
+    background: linear-gradient(135deg, #FFF8E1, #FFFDE7);
+    border: 2px solid #FFD54F;
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    margin: 1rem 0;
+  }
+  .task-box h4 { color: #E65100; font-size: 1rem; margin-bottom: .6rem; }
+
+  /* ── COMPARISON ──────────────────────────── */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid #E0E0E0;
+    margin: .8rem 0;
+  }
+  .compare-bad, .compare-good {
+    padding: 1rem 1.2rem;
+  }
+  .compare-bad  { background: #FFEBEE; border-right: 1px solid #E0E0E0; }
+  .compare-good { background: #E8F5E9; }
+  .compare-bad h5  { color: #C62828; font-size: .8rem; margin-bottom: .5rem; }
+  .compare-good h5 { color: #1B5E20; font-size: .8rem; margin-bottom: .5rem; }
+  @media(max-width:600px) {
+    .compare { grid-template-columns: 1fr; }
+    .compare-bad { border-right: none; border-bottom: 1px solid #E0E0E0; }
+  }
+
+  /* ── INDUSTRY BOX ────────────────────────── */
+  .industry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; }
+  .industry-card {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    border: 1px solid #E0E0E0;
+    background: #fff;
+  }
+  .industry-card .ico { font-size: 1.8rem; margin-bottom: .4rem; }
+  .industry-card h5 { font-size: .88rem; color: var(--primary-dark); margin-bottom: .3rem; }
+  .industry-card p  { font-size: .82rem; color: #555; margin: 0; }
+
+  /* ── CHECKPOINT ──────────────────────────── */
+  .checkpoint {
+    background: var(--success-light);
+    border: 1px solid #A5D6A7;
+    border-radius: 12px;
+    padding: 1rem 1.3rem;
+    margin: .8rem 0;
+  }
+  .checkpoint h4 { color: var(--success); font-size: .85rem; text-transform: uppercase;
+                   letter-spacing: .8px; margin-bottom: .5rem; }
+  .checkpoint li { font-size: .9rem; }
+  .checkpoint li::marker { color: var(--success); }
+
+  /* ── FOOTER ──────────────────────────────── */
+  footer {
+    text-align: center; padding: 2rem;
+    font-size: .82rem; color: var(--outline);
+    border-top: 1px solid #E0E0E0;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="brand">C++ // Sobrecarga</span>
+  <a href="#concepto">Concepto</a>
+  <a href="#motivacion">Motivación</a>
+  <a href="#sintaxis">Sintaxis</a>
+  <a href="#reglas">Reglas</a>
+  <a href="#binarios">Operadores +−*/</a>
+  <a href="#stream">Operador &lt;&lt;</a>
+  <a href="#conversion">Conversión</a>
+  <a href="#industria">Industria</a>
+  <a href="#tarea">Tarea T3</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <h1>Sobrecarga de Operadores</h1>
+  <p class="subtitle">Operator Overloading — Polimorfismo en tiempo de compilación</p>
+  <div class="hero-meta">
+    <span class="badge">TC1030 · Segundo Semestre</span>
+    <span class="badge">Tecnología en Informática</span>
+    <span class="badge">C++ · Capítulo 10 Deitel</span>
+  </div>
+  <div class="toc-pills">
+    <a class="toc-pill" href="#concepto">1 · Concepto</a>
+    <a class="toc-pill" href="#motivacion">2 · ¿Por qué?</a>
+    <a class="toc-pill" href="#sintaxis">3 · Sintaxis</a>
+    <a class="toc-pill" href="#reglas">4 · Reglas</a>
+    <a class="toc-pill" href="#binarios">5 · Op. Binarios</a>
+    <a class="toc-pill" href="#stream">6 · Op. Stream</a>
+    <a class="toc-pill" href="#conversion">7 · Conversión</a>
+    <a class="toc-pill" href="#industria">8 · Industria</a>
+    <a class="toc-pill" href="#tarea">9 · Tarea T3</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 1 — ¿QUÉ ES LA SOBRECARGA?
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="concepto">
+  <div class="topic-header">
+    <div class="topic-number">1</div>
+    <div>
+      <h2>¿Qué es la Sobrecarga de Operadores?</h2>
+      <div class="subtitle">Dándole nuevo significado a símbolos existentes</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Definición formal</div>
+      <p>La sobrecarga de operadores (operator overloading) es la capacidad de
+         <strong>asignarle un comportamiento personalizado a operadores existentes</strong>
+         (como <code>+</code>, <code>-</code>, <code>*</code>, <code>&lt;&lt;</code>) cuando se usan con
+         <strong>tipos de datos definidos por el usuario</strong> (clases y structs).</p>
+      <p>Es una forma de <strong>polimorfismo en tiempo de compilación</strong>: el compilador decide qué
+         función invocar en función de los tipos de los operandos.</p>
+
+      <div class="callout accent">
+        <div class="callout-title">Idea central</div>
+        <p>El operador <code>+</code> ya sabe sumar <code>int</code>, <code>double</code> y <code>float</code>.
+           Con sobrecarga, <em>tú le enseñas</em> cómo sumar tus propios objetos.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Metáfora — El control universal</div>
+      <div class="metaphor">
+        <div class="meta-icon">📺</div>
+        <h4>Un mismo botón, distintas acciones según el dispositivo</h4>
+        <p>Imagina un control remoto universal. El botón "▶ Play" siempre significa
+           <em>"reproducir"</em>, pero lo que hace depende de a qué aparato esté apuntando:
+           en el DVD reproduce una película, en el estéreo reproduce música, en el Blu-ray
+           reproduce en alta definición.</p>
+        <p>El operador <code>+</code> es ese botón: siempre significa <em>"combinar"</em>, pero
+           tú defines qué hace cuando los operandos son tus objetos.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Metáfora alternativa — El idioma</div>
+      <div class="metaphor">
+        <div class="meta-icon">🌍</div>
+        <h4>Una palabra, distintos significados según el contexto</h4>
+        <p>En español, el símbolo "+" en matemáticas significa suma; en música podría
+           indicar una nota sostenida; en medicina indica positivo. La <em>notación</em>
+           es la misma, el <em>significado</em> depende del dominio.</p>
+        <p>Con sobrecarga le estás diciendo al compilador: "cuando veas <code>obj1 + obj2</code>
+           y ambos son de mi clase, aquí tienes las instrucciones exactas de qué hacer".</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Antes vs después de la sobrecarga</div>
+      <div class="compare">
+        <div class="compare-bad">
+          <h5>Sin sobrecarga — verbose y confuso</h5>
+          <pre><code><span class="cm">// Tienes que llamar métodos explícitos</span>
+Rect resultado;
+resultado.setX( r1.getX() + r2.getX() );
+resultado.setY( r1.getY() + r2.getY() );
+</code></pre>
+        </div>
+        <div class="compare-good">
+          <h5>Con sobrecarga — intuitivo y legible</h5>
+          <pre><code><span class="cm">// Igual que con int o double</span>
+Rect resultado = r1 + r2;
+</code></pre>
+        </div>
+      </div>
+      <p>Ambos producen el mismo resultado, pero la versión con sobrecarga es <strong>más
+         legible, natural y segura</strong> porque la lógica de combinación vive dentro
+         de la clase, no dispersa en el cliente.</p>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 2 — ¿POR QUÉ USARLA?
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="motivacion">
+  <div class="topic-header">
+    <div class="topic-number">2</div>
+    <div>
+      <h2>¿Por Qué Usar Sobrecarga de Operadores?</h2>
+      <div class="subtitle">Motivación con el escenario de coordenadas</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">El escenario del material de clase</div>
+      <p>Supón que tienes dos clases para representar puntos en un plano:</p>
+      <div class="grid2">
+        <div class="card">
+          <h4>Coordenada Rectangular (Rect)</h4>
+          <p>Formato: <code>(x, y)</code></p>
+          <p>Ejemplo: <code>(3, 4)</code></p>
+          <p>La suma y resta son simples: se suman las partes correspondientes.</p>
+          <pre style="font-size:.78rem"><code>suma.x = r1.x + r2.x;
+suma.y = r1.y + r2.y;</code></pre>
+        </div>
+        <div class="card accent">
+          <h4>Coordenada Polar (Pol)</h4>
+          <p>Formato: <code>(r, θ)</code></p>
+          <p>Ejemplo: <code>(4, 30°)</code></p>
+          <p>La multiplicación y división son simples en forma polar:
+             se multiplican módulos y suman ángulos.</p>
+          <pre style="font-size:.78rem"><code>prod.r = p1.r * p2.r;
+prod.ang = p1.ang + p2.ang;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Beneficios de la sobrecarga</div>
+      <div class="grid3">
+        <div class="card">
+          <h4>Legibilidad</h4>
+          <p>El código cliente lee como matemática, no como código de máquina.</p>
+        </div>
+        <div class="card">
+          <h4>Encapsulamiento</h4>
+          <p>La lógica de operación vive dentro de la clase, no regada en el main.</p>
+        </div>
+        <div class="card green">
+          <h4>Interoperabilidad</h4>
+          <p>Puedes definir cómo se combina un <code>Rect</code> con un <code>Pol</code> de forma transparente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Código completo — Rect con suma sobrecargada</div>
+      <pre><code><span class="lang-tag">rect.h</span><span class="cm">// Clase Rect con sobrecarga de +</span>
+<span class="kw">class</span> <span class="ty">Rect</span> {
+<span class="kw">public</span>:
+    <span class="ty">double</span> x, y;
+
+    <span class="fn">Rect</span>(<span class="ty">double</span> x = <span class="nu">0</span>, <span class="ty">double</span> y = <span class="nu">0</span>) : x(x), y(y) {}
+
+    <span class="cm">// Sobrecarga de +</span>
+    <span class="ty">Rect</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">Rect</span>&amp; otro) <span class="kw">const</span> {
+        <span class="kw">return</span> <span class="ty">Rect</span>(x <span class="op">+</span> otro.x, y <span class="op">+</span> otro.y);
+    }
+
+    <span class="cm">// Sobrecarga de -</span>
+    <span class="ty">Rect</span> <span class="kw">operator</span><span class="op">-</span>(<span class="kw">const</span> <span class="ty">Rect</span>&amp; otro) <span class="kw">const</span> {
+        <span class="kw">return</span> <span class="ty">Rect</span>(x <span class="op">-</span> otro.x, y <span class="op">-</span> otro.y);
+    }
+};
+</code></pre>
+      <pre><code><span class="lang-tag">main.cpp</span><span class="ty">Rect</span> r1(<span class="nu">1</span>, <span class="nu">2</span>), r2(<span class="nu">3</span>, <span class="nu">4</span>);
+<span class="ty">Rect</span> suma = r1 <span class="op">+</span> r2;    <span class="cm">// compila: llama a r1.operator+(r2)</span>
+<span class="cm">// suma.x = 4,  suma.y = 6</span>
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-title">Lo que hace el compilador</div>
+        <p>Cuando ve <code>r1 + r2</code>, el compilador lo transforma internamente en
+           <code>r1.operator+(r2)</code>. Sin la sobrecarga sería un error de compilación
+           porque no sabe cómo combinar dos objetos de tipo <code>Rect</code>.</p>
+      </div>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 3 — SINTAXIS
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="sintaxis">
+  <div class="topic-header">
+    <div class="topic-number">3</div>
+    <div>
+      <h2>Sintaxis de la Sobrecarga</h2>
+      <div class="subtitle">La palabra clave <code>operator</code></div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Forma general</div>
+      <pre><code><span class="cm">// Como función miembro</span>
+<span class="ty">TipoRetorno</span> <span class="kw">operator</span><span class="op">símbolo</span>(<span class="ty">Parámetros</span>) <span class="kw">const</span>;
+
+<span class="cm">// Como función no-miembro (friend)</span>
+<span class="kw">friend</span> <span class="ty">TipoRetorno</span> <span class="kw">operator</span><span class="op">símbolo</span>(<span class="ty">Param1</span>, <span class="ty">Param2</span>);
+</code></pre>
+      <p>La palabra reservada <code>operator</code> seguida del símbolo indica al compilador
+         que esta función define el comportamiento de ese operador para los tipos
+         de los parámetros.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Función miembro vs función no-miembro</div>
+      <div class="grid2">
+        <div class="card">
+          <h4>Función miembro</h4>
+          <ul>
+            <li>El <strong>objeto izquierdo</strong> es <code>*this</code></li>
+            <li>Solo necesita un parámetro (operando derecho)</li>
+            <li>Tiene acceso directo a datos privados</li>
+          </ul>
+          <pre style="font-size:.78rem"><code><span class="ty">Complejo</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">Complejo</span>&amp; c) {
+    <span class="kw">return</span> <span class="ty">Complejo</span>(real<span class="op">+</span>c.real,
+                   imag<span class="op">+</span>c.imag);
+}</code></pre>
+        </div>
+        <div class="card accent">
+          <h4>Función no-miembro (friend)</h4>
+          <ul>
+            <li>Necesita <strong>dos</strong> parámetros</li>
+            <li>Necesaria cuando el operando izquierdo <em>no</em> es de tu clase</li>
+            <li>Obligatoria para <code>&lt;&lt;</code> y <code>&gt;&gt;</code></li>
+          </ul>
+          <pre style="font-size:.78rem"><code><span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(
+    <span class="ty">ostream</span>&amp; os,
+    <span class="kw">const</span> <span class="ty">Complejo</span>&amp; c);</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Ejemplo completo — Números complejos</div>
+      <pre><code><span class="lang-tag">complejo.h / complejo.cpp</span><span class="kw">class</span> <span class="ty">Complejo</span> {
+<span class="kw">private</span>:
+    <span class="ty">double</span> real, imag;
+<span class="kw">public</span>:
+    <span class="fn">Complejo</span>(<span class="ty">double</span> r = <span class="nu">0</span>, <span class="ty">double</span> i = <span class="nu">0</span>) : real(r), imag(i) {}
+
+    <span class="ty">Complejo</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">Complejo</span>&amp; c) <span class="kw">const</span> {
+        <span class="kw">return</span> <span class="ty">Complejo</span>(real <span class="op">+</span> c.real, imag <span class="op">+</span> c.imag);
+    }
+
+    <span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(<span class="ty">ostream</span>&amp; os, <span class="kw">const</span> <span class="ty">Complejo</span>&amp; c) {
+        os &lt;&lt; c.real &lt;&lt; <span class="st">" + "</span> &lt;&lt; c.imag &lt;&lt; <span class="st">"i"</span>;
+        <span class="kw">return</span> os;  <span class="cm">// regresa os para poder encadenar: cout &lt;&lt; a &lt;&lt; b</span>
+    }
+};
+
+<span class="cm">// Uso:</span>
+<span class="ty">Complejo</span> c1(<span class="nu">3</span>, <span class="nu">5</span>), c2(<span class="nu">2</span>, <span class="nu">4</span>);
+<span class="ty">Complejo</span> c3 = c1 <span class="op">+</span> c2;
+cout &lt;&lt; c3;  <span class="cm">// Output: 5 + 9i</span>
+</code></pre>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 4 — REGLAS
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="reglas">
+  <div class="topic-header">
+    <div class="topic-number">4</div>
+    <div>
+      <h2>Reglas y Restricciones</h2>
+      <div class="subtitle">Lo que puedes y no puedes hacer — Deitel Ch. 10 + GeeksforGeeks</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Reglas doradas</div>
+      <ol class="steps">
+        <li><strong>Al menos un operando debe ser un tipo definido por el usuario.</strong>
+            No puedes sobrecargar <code>int + int</code> ni cambiar el comportamiento
+            de los tipos primitivos.</li>
+        <li><strong>No puedes cambiar la precedencia ni la asociatividad.</strong>
+            Si <code>*</code> tiene mayor precedencia que <code>+</code> para ints, la sigue
+            teniendo para tus clases.</li>
+        <li><strong>No puedes cambiar la aridad</strong> (número de operandos).
+            Un operador binario siempre necesita dos operandos.</li>
+        <li><strong>No puedes crear operadores nuevos</strong> (ej: <code>**</code> para potencia).
+            Solo puedes reutilizar los símbolos existentes.</li>
+        <li><strong>Algunos operadores deben ser funciones miembro.</strong>
+            Ver tabla abajo.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Operadores que NO se pueden sobrecargar</div>
+      <table>
+        <tr>
+          <th>Operador</th>
+          <th>Nombre</th>
+          <th>¿Por qué no?</th>
+        </tr>
+        <tr><td><code>sizeof</code></td><td>Tamaño</td>
+            <td>Se evalúa en compilación; afectar el layout de memoria causaría caos</td></tr>
+        <tr><td><code>typeid</code></td><td>Identificación de tipo</td>
+            <td>Debe identificar tipos únicos; sobrecargar rompería RTTI</td></tr>
+        <tr><td><code>::</code></td><td>Resolución de alcance</td>
+            <td>Trabaja sobre nombres, no valores; resuelto en compilación</td></tr>
+        <tr><td><code>.</code> y <code>.*</code></td><td>Acceso a miembro</td>
+            <td>El compilador los usa internamente; sobrecargar rompería el acceso a objetos</td></tr>
+        <tr><td><code>?:</code></td><td>Ternario condicional</td>
+            <td>Evalúa solo una rama; funciones no pueden replicar la evaluación diferida</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Operadores que DEBEN ser funciones miembro</div>
+      <div class="chips">
+        <span class="chip">=</span>
+        <span class="chip">[]</span>
+        <span class="chip">()</span>
+        <span class="chip">-></span>
+      </div>
+      <p>Estos cuatro siempre deben declararse como miembros de la clase porque actúan
+         directamente sobre el objeto y el estándar C++ así lo exige.</p>
+
+      <div class="callout warn">
+        <div class="callout-title">Error común</div>
+        <p>Si intentas declarar <code>operator=</code> como función no-miembro, el compilador
+           lo rechazará con un error como: <em>"operator= must be a non-static member function"</em>.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Operadores que DEBEN ser no-miembro (friend)</div>
+      <div class="chips">
+        <span class="chip accent">&lt;&lt;</span>
+        <span class="chip accent">&gt;&gt;</span>
+      </div>
+      <p>El operador de salida <code>&lt;&lt;</code> y el de entrada <code>&gt;&gt;</code>
+         <strong>siempre</strong> deben ser funciones no-miembro, porque el operando izquierdo
+         es <code>ostream</code> o <code>istream</code>, que <em>no</em> son tu clase.</p>
+      <p>Se declaran como <code>friend</code> dentro de la clase para que puedan acceder
+         a los datos privados.</p>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 5 — OPERADORES BINARIOS
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="binarios">
+  <div class="topic-header">
+    <div class="topic-number">5</div>
+    <div>
+      <h2>Sobrecarga de Operadores Binarios</h2>
+      <div class="subtitle">+, −, *, /, ==, !=, <, > y más</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Ejemplo 1 — Casilla de juego (contexto de la Tarea 3)</div>
+      <p>En Serpientes y Escaleras, una <strong>casilla normal</strong> avanza el número
+         de pasos que indica el dado. Una <strong>casilla serpiente</strong> retrocede
+         según su penalización. Con sobrecarga del <code>+</code>, el código cliente
+         no necesita saber qué tipo de casilla está usando:</p>
+      <pre><code><span class="lang-tag">casilla.h</span><span class="kw">class</span> <span class="ty">Casilla</span> {
+<span class="kw">protected</span>:
+    <span class="ty">int</span> posicion;
+<span class="kw">public</span>:
+    <span class="fn">Casilla</span>(<span class="ty">int</span> pos) : posicion(pos) {}
+    <span class="ty">int</span> <span class="fn">getPosicion</span>() <span class="kw">const</span> { <span class="kw">return</span> posicion; }
+
+    <span class="cm">// Operador + base: avanza normalmente</span>
+    <span class="kw">virtual</span> <span class="ty">int</span> <span class="kw">operator</span><span class="op">+</span>(<span class="ty">int</span> pasos) <span class="kw">const</span> {
+        <span class="kw">return</span> posicion <span class="op">+</span> pasos;
+    }
+};
+
+<span class="kw">class</span> <span class="ty">Serpiente</span> : <span class="kw">public</span> <span class="ty">Casilla</span> {
+<span class="kw">private</span>:
+    <span class="ty">int</span> penalty;   <span class="cm">// siempre positivo</span>
+<span class="kw">public</span>:
+    <span class="fn">Serpiente</span>(<span class="ty">int</span> pos, <span class="ty">int</span> p) : <span class="ty">Casilla</span>(pos), penalty(p) {}
+
+    <span class="cm">// "+" con serpiente SIEMPRE resta el valor absoluto</span>
+    <span class="ty">int</span> <span class="kw">operator</span><span class="op">+</span>(<span class="ty">int</span> pasos) <span class="kw">const</span> <span class="kw">override</span> {
+        <span class="kw">return</span> posicion <span class="op">-</span> abs(penalty);
+    }
+};
+</code></pre>
+
+      <pre><code><span class="lang-tag">main.cpp — uso transparente</span><span class="ty">Casilla* c</span> = <span class="kw">new</span> <span class="ty">Serpiente</span>(<span class="nu">5</span>, <span class="nu">4</span>);
+<span class="ty">int</span> nueva_pos = <span class="op">*</span>c <span class="op">+</span> <span class="nu">4</span>;   <span class="cm">// resultado: 5 - 4 = 1  ✓</span>
+cout &lt;&lt; <span class="st">"Nueva posición: "</span> &lt;&lt; nueva_pos;
+</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-title">Explicación de la tarea</div>
+        <p>La especificación dice: si la casilla origen es 5 y caes en una serpiente
+           con penalty 4, entonces <code>5 + 4 = 1</code> (se resta el absoluto).
+           La sobrecarga permite que el símbolo <code>+</code> haga la resta internamente,
+           y el código del juego queda limpio y uniforme.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Ejemplo 2 — Clase Array con [] (Deitel Ch.10)</div>
+      <p>Deitel usa una clase <code>Array</code> para mostrar cómo sobrecargar <code>[]</code>
+         con comprobación de rangos, algo que el array nativo de C++ no hace:</p>
+      <pre><code><span class="kw">class</span> <span class="ty">Array</span> {
+<span class="kw">private</span>:
+    <span class="ty">int</span>* datos;
+    <span class="ty">int</span> tam;
+<span class="kw">public</span>:
+    <span class="fn">Array</span>(<span class="ty">int</span> t) : tam(t), datos(<span class="kw">new</span> <span class="ty">int</span>[t]()) {}
+
+    <span class="cm">// [] con comprobación de rango</span>
+    <span class="ty">int</span>&amp; <span class="kw">operator</span>[](<span class="ty">int</span> idx) {
+        <span class="kw">if</span> (idx &lt; <span class="nu">0</span> || idx &gt;= tam)
+            <span class="kw">throw</span> out_of_range(<span class="st">"Índice fuera de rango"</span>);
+        <span class="kw">return</span> datos[idx];
+    }
+
+    <span class="cm">// == para comparar dos arrays</span>
+    <span class="ty">bool</span> <span class="kw">operator</span><span class="op">==</span>(<span class="kw">const</span> <span class="ty">Array</span>&amp; otro) <span class="kw">const</span> {
+        <span class="kw">if</span> (tam != otro.tam) <span class="kw">return false</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i &lt; tam; i++)
+            <span class="kw">if</span> (datos[i] != otro.datos[i]) <span class="kw">return false</span>;
+        <span class="kw">return true</span>;
+    }
+};
+</code></pre>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Tabla de operadores binarios comunes</div>
+      <table>
+        <tr><th>Operador</th><th>Firma típica</th><th>Devuelve</th></tr>
+        <tr><td><code>+</code> <code>-</code> <code>*</code> <code>/</code></td>
+            <td><code>T operator+(const T&amp; o) const</code></td>
+            <td>Nuevo objeto <code>T</code></td></tr>
+        <tr><td><code>+=</code> <code>-=</code></td>
+            <td><code>T&amp; operator+=(const T&amp; o)</code></td>
+            <td>Referencia a <code>*this</code></td></tr>
+        <tr><td><code>==</code> <code>!=</code></td>
+            <td><code>bool operator==(const T&amp; o) const</code></td>
+            <td><code>bool</code></td></tr>
+        <tr><td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td>
+            <td><code>bool operator&lt;(const T&amp; o) const</code></td>
+            <td><code>bool</code></td></tr>
+        <tr><td><code>[]</code></td>
+            <td><code>T&amp; operator[](int idx)</code></td>
+            <td>Referencia al elemento</td></tr>
+      </table>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 6 — OPERADOR <<
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="stream">
+  <div class="topic-header">
+    <div class="topic-number">6</div>
+    <div>
+      <h2>Sobrecarga del Operador &lt;&lt; (Stream)</h2>
+      <div class="subtitle">Impresión personalizada con cout — también aplica para &gt;&gt;</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">¿Por qué &lt;&lt; debe ser no-miembro?</div>
+      <div class="metaphor">
+        <div class="meta-icon">🖨️</div>
+        <h4>Metáfora — La impresora y el documento</h4>
+        <p>El operador <code>&lt;&lt;</code> es como una impresora: su operando izquierdo
+           es siempre la impresora (<code>cout</code>, un objeto de tipo <code>ostream</code>),
+           y el derecho es el documento (tu objeto).</p>
+        <p>Como la impresora no es tu clase, <em>no puedes añadirle un método miembro</em>.
+           En cambio, defines una función externa que sabe cómo imprimir tu objeto.</p>
+      </div>
+
+      <pre><code><span class="lang-tag">Por qué no funciona como miembro</span><span class="cm">// SI fuera miembro de Turno, el uso sería al revés:</span>
+turno.<span class="kw">operator</span>&lt;&lt;(cout);   <span class="cm">// ← raro y no compila con cout &lt;&lt; turno</span>
+
+<span class="cm">// Como friend no-miembro:</span>
+cout &lt;&lt; turno;             <span class="cm">// ← natural y correcto</span>
+<span class="cm">// que el compilador traduce a:</span>
+<span class="kw">operator</span>&lt;&lt;(cout, turno);  <span class="cm">// ← llama a la función friend</span>
+</code></pre>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Clase Turno — Implementación para la Tarea 3</div>
+      <pre><code><span class="lang-tag">turno.h</span><span class="kw">class</span> <span class="ty">Turno</span> {
+<span class="kw">private</span>:
+    <span class="ty">int</span>    jugador;
+    <span class="ty">int</span>    dado;
+    <span class="ty">int</span>    posInicial;
+    <span class="ty">int</span>    posFinal;
+    <span class="ty">string</span> evento;   <span class="cm">// "Escalera", "Serpiente", "Normal"</span>
+
+<span class="kw">public</span>:
+    <span class="fn">Turno</span>(<span class="ty">int</span> jug, <span class="ty">int</span> dado, <span class="ty">int</span> posI, <span class="ty">int</span> posF, <span class="kw">const</span> <span class="ty">string</span>&amp; ev)
+        : jugador(jug), dado(dado), posInicial(posI),
+          posFinal(posF), evento(ev) {}
+
+    <span class="cm">// Sobrecarga de &lt;&lt; — DEBE ser friend no-miembro</span>
+    <span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(<span class="ty">ostream</span>&amp; os, <span class="kw">const</span> <span class="ty">Turno</span>&amp; t);
+};
+</code></pre>
+
+      <pre><code><span class="lang-tag">turno.cpp</span><span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(<span class="ty">ostream</span>&amp; os, <span class="kw">const</span> <span class="ty">Turno</span>&amp; t) {
+    os &lt;&lt; <span class="st">"Jugador "</span>  &lt;&lt; t.jugador
+       &lt;&lt; <span class="st">" | Dado: "</span> &lt;&lt; t.dado
+       &lt;&lt; <span class="st">" | Pos: "</span>  &lt;&lt; t.posInicial &lt;&lt; <span class="st">" -> "</span> &lt;&lt; t.posFinal
+       &lt;&lt; <span class="st">" | "</span>       &lt;&lt; t.evento;
+    <span class="kw">return</span> os;  <span class="cm">// CRÍTICO: devolver os permite encadenar &lt;&lt;</span>
+}
+</code></pre>
+
+      <pre><code><span class="lang-tag">main.cpp — uso</span><span class="ty">Turno</span> t(<span class="nu">1</span>, <span class="nu">5</span>, <span class="nu">10</span>, <span class="nu">15</span>, <span class="st">"Normal"</span>);
+cout &lt;&lt; t &lt;&lt; endl;
+<span class="cm">// Output: Jugador 1 | Dado: 5 | Pos: 10 -> 15 | Normal</span>
+
+<span class="cm">// Encadenamiento funciona porque regresamos ostream&amp;:</span>
+cout &lt;&lt; t1 &lt;&lt; <span class="st">"\n"</span> &lt;&lt; t2 &lt;&lt; endl;
+</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-title">Error frecuente — no devolver ostream&amp;</div>
+        <p>Si la función regresa <code>void</code> en lugar de <code>ostream&amp;</code>,
+           el encadenamiento <code>cout &lt;&lt; t1 &lt;&lt; t2</code> no compilará.
+           <strong>Siempre regresa la referencia al stream.</strong></p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Ejemplo de Deitel — PhoneNumber</div>
+      <p>Deitel (Ch. 10) usa <code>PhoneNumber</code> para mostrar cómo sobrecargar
+         <code>&lt;&lt;</code> y <code>&gt;&gt;</code> para dar formato automático:</p>
+      <pre><code><span class="cm">// Imprime: (800) 555-1212</span>
+<span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(<span class="ty">ostream</span>&amp; out, <span class="kw">const</span> <span class="ty">PhoneNumber</span>&amp; num) {
+    out &lt;&lt; <span class="st">"("</span> &lt;&lt; num.areaCode &lt;&lt; <span class="st">") "</span>
+        &lt;&lt; num.exchange  &lt;&lt; <span class="st">"-"</span>
+        &lt;&lt; num.line;
+    <span class="kw">return</span> out;
+}
+
+<span class="cm">// Lee: "(800) 555-1212" y separa automáticamente</span>
+<span class="kw">friend</span> <span class="ty">istream</span>&amp; <span class="kw">operator</span>&gt;&gt;(<span class="ty">istream</span>&amp; in, <span class="ty">PhoneNumber</span>&amp; num) {
+    in.ignore();                      <span class="cm">// ignora '('</span>
+    in &gt;&gt; setw(<span class="nu">3</span>) &gt;&gt; num.areaCode;   <span class="cm">// lee 3 dígitos</span>
+    in.ignore(<span class="nu">2</span>);                    <span class="cm">// ignora ') '</span>
+    in &gt;&gt; setw(<span class="nu">3</span>) &gt;&gt; num.exchange;
+    in.ignore();                      <span class="cm">// ignora '-'</span>
+    in &gt;&gt; setw(<span class="nu">4</span>) &gt;&gt; num.line;
+    <span class="kw">return</span> in;
+}
+</code></pre>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 7 — OPERADORES DE CONVERSIÓN
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="conversion">
+  <div class="topic-header">
+    <div class="topic-number">7</div>
+    <div>
+      <h2>Operadores de Conversión</h2>
+      <div class="subtitle">Convertir tu objeto a otros tipos automáticamente</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Constructor de conversión</div>
+      <p>Cualquier constructor que acepta <strong>un solo argumento</strong> actúa como
+         un conversor implícito. Cuando el compilador necesita el tipo de tu clase
+         y tiene otro tipo disponible, llama a este constructor automáticamente.</p>
+      <pre><code><span class="kw">class</span> <span class="ty">Punto</span> {
+<span class="kw">public</span>:
+    <span class="ty">int</span> x, y;
+    <span class="fn">Punto</span>(<span class="ty">int</span> i = <span class="nu">0</span>, <span class="ty">int</span> j = <span class="nu">0</span>) : x(i), y(j) {}
+};
+
+<span class="ty">Punto</span> p;
+p = <span class="nu">30</span>;   <span class="cm">// Llama Punto(30), crea Punto(30,0) y lo asigna</span>
+           <span class="cm">// p.x = 30,  p.y = 0</span>
+</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-title">Uso de explicit</div>
+        <p>Las conversiones implícitas pueden causar bugs sutiles. Usa <code>explicit</code>
+           en el constructor para forzar conversiones explícitas:</p>
+        <pre style="margin:0;font-size:.8rem"><code><span class="kw">explicit</span> <span class="fn">Punto</span>(<span class="ty">int</span> i) : x(i), y(<span class="nu">0</span>) {}
+<span class="cm">// Ahora  p = 30;  es error de compilación</span>
+<span class="cm">// Solo    p = Punto(30);  funciona</span></code></pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Operador de conversión (cast)</div>
+      <p>Permite que tu objeto se convierta automáticamente a un tipo primitivo
+         o a otro tipo de clase. Siempre debe ser función miembro y no tiene
+         tipo de retorno declarado explícitamente:</p>
+      <pre><code><span class="kw">class</span> <span class="ty">Fraccion</span> {
+<span class="kw">private</span>:
+    <span class="ty">int</span> num, den;
+<span class="kw">public</span>:
+    <span class="fn">Fraccion</span>(<span class="ty">int</span> n, <span class="ty">int</span> d) : num(n), den(d) {}
+
+    <span class="cm">// Conversión implícita Fraccion -> float</span>
+    <span class="kw">operator</span> <span class="ty">float</span>() <span class="kw">const</span> {
+        <span class="kw">return</span> <span class="kw">static_cast</span>&lt;<span class="ty">float</span>&gt;(num) / den;
+    }
+};
+
+<span class="ty">Fraccion</span> f(<span class="nu">2</span>, <span class="nu">5</span>);
+<span class="ty">float</span> val = f;    <span class="cm">// Llama a operator float() → 0.4</span>
+cout &lt;&lt; val;      <span class="cm">// Output: 0.4</span>
+</code></pre>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Reto del material de clase — Rect + Pol</div>
+      <div class="callout accent">
+        <div class="callout-title">El reto de la presentación original</div>
+        <p>Sobrecargar <code>+</code> para <code>Rect</code> cuando el otro operando es <code>Pol</code>.
+           La solución: el parámetro es de tipo <code>Pol</code>, se convierte a <code>Rect</code>,
+           se suman las partes, y se regresa un <code>Rect</code>.</p>
+      </div>
+      <pre><code><span class="cm">// En la clase Rect:</span>
+<span class="ty">Rect</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">Pol</span>&amp; polar) <span class="kw">const</span> {
+    <span class="ty">Rect</span> convertido = polar.<span class="fn">toRect</span>();  <span class="cm">// conversión de Pol a Rect</span>
+    <span class="kw">return</span> <span class="ty">Rect</span>(x <span class="op">+</span> convertido.x,
+                y <span class="op">+</span> convertido.y);
+}
+
+<span class="cm">// Uso:</span>
+<span class="ty">Rect</span> r(<span class="nu">1</span>, <span class="nu">2</span>);
+<span class="ty">Pol</span>  p(<span class="nu">4</span>, <span class="nu">30</span>);    <span class="cm">// módulo 4, ángulo 30°</span>
+<span class="ty">Rect</span> res = r <span class="op">+</span> p;  <span class="cm">// Completamente válido con la sobrecarga</span>
+</code></pre>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 8 — EJEMPLOS DE LA INDUSTRIA
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="industria">
+  <div class="topic-header accent">
+    <div class="topic-number">8</div>
+    <div>
+      <h2>Sobrecarga de Operadores en la Industria</h2>
+      <div class="subtitle">Así se usa en código de producción real</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Librerías y frameworks reales</div>
+      <div class="industry-grid">
+        <div class="industry-card">
+          <div class="ico">🔢</div>
+          <h5>Eigen (álgebra lineal)</h5>
+          <p>La librería más usada en robótica, visión computacional e IA para matrices y vectores.
+             <code>A * B</code>, <code>v + w</code> son operaciones de matrices reales.</p>
+        </div>
+        <div class="industry-card">
+          <div class="ico">🖼️</div>
+          <h5>OpenCV (visión artificial)</h5>
+          <p><code>Mat img1 + img2</code> mezcla imágenes píxel por píxel.
+             <code>img * 0.5</code> oscurece la imagen a la mitad de brillo.</p>
+        </div>
+        <div class="industry-card">
+          <div class="ico">🎮</div>
+          <h5>Unity / Unreal (videojuegos)</h5>
+          <p>Los vectores 2D y 3D (<code>Vector3</code>) sobrecargan <code>+</code>, <code>-</code>,
+             <code>*</code>. Mover un personaje: <code>pos += velocidad * deltaTime</code>.</p>
+        </div>
+        <div class="industry-card">
+          <div class="ico">📐</div>
+          <h5>Qt Framework (GUI)</h5>
+          <p><code>QString a = "Hola " + nombre</code> concatena strings.
+             <code>QPoint p1 + p2</code> suma puntos en la pantalla.</p>
+        </div>
+        <div class="industry-card">
+          <div class="ico">🌐</div>
+          <h5>std::string (STL)</h5>
+          <p>El <code>+</code> concatena strings: <code>nombre + " " + apellido</code>.
+             El <code>[]</code> accede a caracteres: <code>str[0]</code>.</p>
+        </div>
+        <div class="industry-card">
+          <div class="ico">💰</div>
+          <h5>Sistemas financieros</h5>
+          <p>Clases como <code>Money</code>, <code>Currency</code> sobrecargan aritmética
+             para manejar decimales exactos y conversiones de moneda transparentemente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Caso real — std::string como inspiración</div>
+      <p>La clase <code>std::string</code> de la STL es el ejemplo más cotidiano de sobrecarga.
+         Internamente implementa docenas de operadores sobrecargados:</p>
+      <pre><code><span class="ty">string</span> nombre = <span class="st">"Ana"</span>;
+<span class="ty">string</span> apellido = <span class="st">"García"</span>;
+
+<span class="ty">string</span> completo = nombre <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> apellido;   <span class="cm">// operator+</span>
+<span class="ty">bool</span>   igual    = nombre <span class="op">==</span> apellido;         <span class="cm">// operator==</span>
+<span class="ty">char</span>   inicial  = nombre[<span class="nu">0</span>];                  <span class="cm">// operator[]</span>
+cout &lt;&lt; completo;                             <span class="cm">// operator&lt;&lt;</span>
+</code></pre>
+      <p>Si <code>std::string</code> no tuviera sobrecarga, escribirías:
+         <code>nombre.concat(" ").concat(apellido)</code>. La sobrecarga hace que
+         <em>tu código lea como el problema que resuelve</em>, no como las instrucciones
+         de la máquina.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Caso real — Motor de videojuego (tipo Unity/Godot)</div>
+      <pre><code><span class="kw">class</span> <span class="ty">Vector2</span> {
+<span class="kw">public</span>:
+    <span class="ty">float</span> x, y;
+
+    <span class="ty">Vector2</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">Vector2</span>&amp; v)  <span class="kw">const</span> { <span class="kw">return</span> {x<span class="op">+</span>v.x, y<span class="op">+</span>v.y}; }
+    <span class="ty">Vector2</span> <span class="kw">operator</span><span class="op">*</span>(<span class="ty">float</span> t)            <span class="kw">const</span> { <span class="kw">return</span> {x<span class="op">*</span>t,   y<span class="op">*</span>t  }; }
+    <span class="ty">Vector2</span>&amp; <span class="kw">operator</span><span class="op">+=</span>(<span class="kw">const</span> <span class="ty">Vector2</span>&amp; v) { x<span class="op">+=</span>v.x; y<span class="op">+=</span>v.y; <span class="kw">return</span> <span class="op">*</span><span class="kw">this</span>; }
+    <span class="ty">bool</span>     <span class="kw">operator</span><span class="op">==</span>(<span class="kw">const</span> <span class="ty">Vector2</span>&amp; v) <span class="kw">const</span> { <span class="kw">return</span> x<span class="op">==</span>v.x &amp;&amp; y<span class="op">==</span>v.y; }
+};
+
+<span class="cm">// En el loop del juego — se lee como física, no como código</span>
+<span class="ty">Vector2</span> posicion(<span class="nu">0</span>, <span class="nu">0</span>), velocidad(<span class="nu">2</span>, <span class="nu">0</span>);
+<span class="ty">float</span> dt = <span class="nu">0.016f</span>;  <span class="cm">// ~60 FPS</span>
+
+posicion <span class="op">+=</span> velocidad <span class="op">*</span> dt;   <span class="cm">// mueve el personaje cada frame</span>
+</code></pre>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     TEMA 9 — APOYO PARA LA TAREA T3
+═══════════════════════════════════════════════════════ -->
+<article class="topic" id="tarea">
+  <div class="topic-header" style="background: #4527A0;">
+    <div class="topic-number">9</div>
+    <div>
+      <h2>Apoyo para la Tarea 3 — TC1030-T3</h2>
+      <div class="subtitle">Serpientes y Escaleras con Sobrecarga de Operadores</div>
+    </div>
+  </div>
+  <div class="topic-body">
+
+    <div class="section">
+      <div class="section-title">Resumen de lo que pide la tarea</div>
+      <div class="task-box">
+        <h4>TC1030 — Tarea 3: Sobrecarga de Operadores</h4>
+        <p>Actualizar el juego de Serpientes y Escaleras (Tarea 2) para incluir:</p>
+        <ol>
+          <li>Sobrecargar el operador <code>+</code> para las casillas:<br>
+              — Casilla <strong>Serpiente</strong>: <code>+</code> debe <em>restar</em> el valor absoluto del penalty.<br>
+              — Ejemplo: casilla origen 5 + serpiente con penalty 4 → resultado = 1</li>
+          <li>Crear la clase <strong>Turno</strong> con todos los atributos del turno.</li>
+          <li>Sobrecargar el operador <code>&lt;&lt;</code> para <code>Turno</code> con el formato de la Tarea 1.</li>
+        </ol>
+        <p style="font-size:.85rem; margin-top:.8rem;"><strong>Entregable:</strong> .zip con README.txt, class_diagram.png, y carpeta src/</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Diseño sugerido de clases</div>
+      <pre><code><span class="lang-tag">Jerarquía de Casillas</span>
+           <span class="ty">Casilla</span>  (clase base)
+          /       \
+    <span class="ty">Escalera</span>     <span class="ty">Serpiente</span>
+    +bonus        +penalty
+
+<span class="ty">Turno</span>            (clase independiente)
+  - jugador : int
+  - dado    : int
+  - posOrigen, posFinal : int
+  - evento  : string
+</code></pre>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Sobrecarga del + en Casilla</h4>
+          <pre style="font-size:.78rem"><code><span class="cm">// En Casilla (base):</span>
+<span class="kw">virtual</span> <span class="ty">int</span> <span class="kw">operator</span>+(<span class="ty">int</span> p) <span class="kw">const</span>
+{ <span class="kw">return</span> pos + p; }
+
+<span class="cm">// En Serpiente:</span>
+<span class="ty">int</span> <span class="kw">operator</span>+(<span class="ty">int</span> p) <span class="kw">const</span> <span class="kw">override</span>
+{ <span class="kw">return</span> pos - abs(penalty); }
+
+<span class="cm">// En Escalera:</span>
+<span class="ty">int</span> <span class="kw">operator</span>+(<span class="ty">int</span> p) <span class="kw">const</span> <span class="kw">override</span>
+{ <span class="kw">return</span> pos + bonus; }</code></pre>
+        </div>
+        <div class="card">
+          <h4>Sobrecarga del &lt;&lt; en Turno</h4>
+          <pre style="font-size:.78rem"><code><span class="cm">// En turno.h:</span>
+<span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(
+    <span class="ty">ostream</span>&amp; os,
+    <span class="kw">const</span> <span class="ty">Turno</span>&amp; t);
+
+<span class="cm">// En turno.cpp:</span>
+<span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(
+    <span class="ty">ostream</span>&amp; os,
+    <span class="kw">const</span> <span class="ty">Turno</span>&amp; t)
+{
+  os &lt;&lt; <span class="cm">/* formato T1 */</span>;
+  <span class="kw">return</span> os;
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Código de ejemplo — integración en el juego</div>
+      <pre><code><span class="lang-tag">juego.cpp — fragmento del loop de turnos</span><span class="cm">// Dado el puntero polimórfico a la casilla donde cayó el jugador:</span>
+<span class="ty">Casilla</span>* casilla = tablero[nueva_pos];
+
+<span class="cm">// La sobrecarga de + decide automáticamente el resultado:</span>
+<span class="ty">int</span> pos_final = <span class="op">*</span>casilla <span class="op">+</span> dado;
+<span class="cm">//  Si es Casilla normal → suma</span>
+<span class="cm">//  Si es Serpiente     → resta el penalty</span>
+<span class="cm">//  Si es Escalera      → suma el bonus</span>
+<span class="cm">//  Polimorfismo + Sobrecarga = código limpio ✓</span>
+
+<span class="ty">Turno</span> turno_actual(jugador, dado, pos_origen, pos_final, evento);
+cout &lt;&lt; turno_actual &lt;&lt; endl;   <span class="cm">// operator&lt;&lt; en acción</span>
+</code></pre>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estructura del .zip a entregar</div>
+      <pre><code>TC1030 <span class="op">-</span> T3 <span class="op">-</span> A00000000.zip
+├── README.txt          <span class="cm"># instrucciones compilación + discusión sobrecarga</span>
+├── class_diagram.png   <span class="cm"># diagrama actualizado con nuevas clases</span>
+└── src/
+    ├── casilla.h / casilla.cpp
+    ├── serpiente.h / serpiente.cpp
+    ├── escalera.h / escalera.cpp
+    ├── turno.h / turno.cpp
+    ├── juego.h / juego.cpp
+    └── main.cpp
+</code></pre>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Checklist antes de entregar</div>
+      <div class="checkpoint">
+        <h4>Lista de verificación — Tarea 3</h4>
+        <ul>
+          <li>Clase <code>Turno</code> creada con todos los atributos del formato de salida</li>
+          <li><code>operator+</code> sobrecargado en <code>Casilla</code> (base) y en las subclases</li>
+          <li>En <code>Serpiente</code>: el <code>+</code> resta el <code>abs(penalty)</code></li>
+          <li><code>operator&lt;&lt;</code> declarado como <code>friend</code> en <code>Turno</code></li>
+          <li><code>operator&lt;&lt;</code> devuelve <code>ostream&amp;</code> (para encadenamiento)</li>
+          <li>La salida del programa es idéntica a las Tareas 1 y 2</li>
+          <li>README.txt incluye discusión sobre la sobrecarga realizada</li>
+          <li>Diagrama de clases actualizado en class_diagram.png</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Errores comunes a evitar</div>
+      <table>
+        <tr><th>Error</th><th>Consecuencia</th><th>Solución</th></tr>
+        <tr>
+          <td>Declarar <code>operator&lt;&lt;</code> como miembro de <code>Turno</code></td>
+          <td>No compilará o el uso será <code>turno &lt;&lt; cout</code> (operandos al revés)</td>
+          <td>Siempre declarar como <code>friend</code> no-miembro</td>
+        </tr>
+        <tr>
+          <td>No devolver <code>ostream&amp;</code> en <code>operator&lt;&lt;</code></td>
+          <td>El encadenamiento (<code>cout &lt;&lt; t1 &lt;&lt; t2</code>) no compila</td>
+          <td>La última línea debe ser <code>return os;</code></td>
+        </tr>
+        <tr>
+          <td>Usar <code>penalty</code> sin <code>abs()</code> en <code>Serpiente</code></td>
+          <td>Si <code>penalty</code> es negativo, suma en lugar de restar</td>
+          <td>Siempre usar <code>abs(penalty)</code> para garantizar el retroceso</td>
+        </tr>
+        <tr>
+          <td>No marcar <code>operator+</code> como <code>const</code></td>
+          <td>No puede llamarse sobre objetos constantes o referencias const</td>
+          <td>Agregar <code>const</code> al final de la firma</td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     RESUMEN RÁPIDO
+═══════════════════════════════════════════════════════ -->
+<article class="topic">
+  <div class="topic-header" style="background: var(--success);">
+    <div class="topic-number">✓</div>
+    <div>
+      <h2>Resumen — Lo que debes recordar</h2>
+      <div class="subtitle">Puntos clave de toda la presentación</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="grid2">
+      <div>
+        <div class="section-title">Conceptos esenciales</div>
+        <ul>
+          <li>La sobrecarga es <strong>polimorfismo en compilación</strong></li>
+          <li>Al menos un operando debe ser <strong>tipo de usuario</strong></li>
+          <li>No cambia precedencia, asociatividad ni aridad</li>
+          <li><code>&lt;&lt;</code> y <code>&gt;&gt;</code> → siempre <strong>friend no-miembro</strong></li>
+          <li><code>=</code>, <code>[]</code>, <code>()</code>, <code>-&gt;</code> → siempre <strong>miembro</strong></li>
+          <li>Siempre regresar <code>ostream&amp;</code> en <code>operator&lt;&lt;</code></li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-title">Sintaxis mínima</div>
+        <pre style="font-size:.78rem"><code><span class="cm">// Binario como miembro:</span>
+<span class="ty">T</span> <span class="kw">operator</span><span class="op">+</span>(<span class="kw">const</span> <span class="ty">T</span>&amp; o) <span class="kw">const</span>;
+
+<span class="cm">// Salida como friend:</span>
+<span class="kw">friend</span> <span class="ty">ostream</span>&amp; <span class="kw">operator</span>&lt;&lt;(
+    <span class="ty">ostream</span>&amp; os, <span class="kw">const</span> <span class="ty">T</span>&amp; obj);
+
+<span class="cm">// Conversión como miembro:</span>
+<span class="kw">operator</span> <span class="ty">float</span>() <span class="kw">const</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:1.2rem;">
+      <div class="section-title">Referencias</div>
+      <div class="chips">
+        <span class="chip">Deitel & Deitel — C++ How to Program, 9e, Cap. 10</span>
+        <span class="chip accent">GeeksforGeeks — Operator Overloading in C++</span>
+        <span class="chip green">TC1030 — Material de clase (SobreCarga.pdf)</span>
+        <span class="chip">TC1030-T3 — Especificación de tarea</span>
+      </div>
+    </div>
+  </div>
+</article>
+
+</main>
+
+<footer>
+  <p>TC1030 · Programación Orientada a Objetos · Segundo Semestre</p>
+  <p style="margin-top:.4rem;">
+    Basado en Deitel &amp; Deitel <em>C++ How to Program, 9e</em> Cap. 10 ·
+    <a href="https://www.geeksforgeeks.org/cpp/operator-overloading-cpp/" target="_blank">GeeksforGeeks</a> ·
+    Material de clase TC1030
+  </p>
+</footer>
+
+</body>
+</html>
