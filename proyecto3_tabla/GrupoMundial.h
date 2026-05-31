@@ -10,6 +10,7 @@ class GrupoMundial {
 private:
     string nombreGrupo;
     vector<EquipoGrupo> equipos;
+    vector<pair<string,string>> partidosJugados;
 
     EquipoGrupo& buscarEquipo(const string& nombre);
 
@@ -20,6 +21,7 @@ public:
     void registrarPartido(const string& local, int gLocal,
                           const string& visitante, int gVisitante);
     void mostrarTabla() const;
+    bool yaJugaron(string e1, string e2) const;
 };
 
 #endif
