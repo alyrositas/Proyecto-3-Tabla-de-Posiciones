@@ -21,6 +21,9 @@ void GrupoMundial::agregarEquipo(const string& nombre) {
 
 void GrupoMundial::registrarPartido(const string& local, int gLocal,
                                      const string& visitante, int gVisitante) {
+    if (yaJugaron(local, visitante)) {
+        throw PartidoDuplicadoException(local, visitante);
+    }
     EquipoGrupo& eLocal     = buscarEquipo(local);
     EquipoGrupo& eVisitante = buscarEquipo(visitante);
 
@@ -34,6 +37,7 @@ void GrupoMundial::registrarPartido(const string& local, int gLocal,
         eLocal.registrarEmpate(gLocal, gVisitante);
         eVisitante.registrarEmpate(gVisitante, gLocal);
     }
+    partidosJugados.push_back(make_pair(local, visitante));
 }
 
 void GrupoMundial::mostrarTabla() const {
@@ -54,4 +58,13 @@ void GrupoMundial::mostrarTabla() const {
              << setw(4) << e.pp << setw(4) << e.gf << setw(4) << e.gc
              << setw(5) << e.diferenciaGoles() << setw(4) << e.puntos << endl;
     }
+}
+
+bool GrupoMundial::yaJugaron(const string& e1, const string& e2) const {
+    for (const auto& p : partidosJugados) {
+        if (p.first == e1 && p.second == e2 || p.first == e2 && p.second == e1) {
+            return true;
+        }
+    }
+    return false;
 }
